@@ -1,57 +1,47 @@
-const uuid4 = require("uuid4");
-const User = require("../../models/userModel/userModel");
-const bcrypt = require("bcryptjs");
+const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
-const { SECRET_KEY } = require("../../utils/config");
 
-exports.createLogin = async (req, res, next) => {
+const generateToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
+
+const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required"
-      });
+      return res.status(400).json({ message: "Email and password are required" });
     }
 
     const user = await User.findOne({ email });
-
     if (!user) {
-      return res.status(401).json({
-        message: "Invalid credentials"
-      });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    if (!user.isActive) {
+      return res.status(403).json({ message: "Account is deactivated. Contact support." });
+    }
 
+    const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({
-        message: "Invalid credentials"
-      });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
-
-    const token = jwt.sign(
-      {
-        id: user._id,
-        email: user.email,
-        role: user.role
-      },
-      SECRET_KEY,
-      { expiresIn: "24h" }
-    );
 
     res.status(200).json({
       message: "Login successful",
-      token,
+      token: generateToken(user._id, user.role),
       user: {
         id: user._id,
-        name: user.name,
+        fullName: user.fullName,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+        isVerified: user.isVerified,
+      },
     });
-
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    console.error("Login Error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+module.exports = { loginUser };

@@ -1,116 +1,60 @@
-const { v4: uuidv4 } = require("uuid");
-const User = require("../../models/userModel/userModel");
+const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const { SECRET_KEY } = require("../../utils/config");
 
-// ------------------------ CREATE USER ------------------------
-exports.createregister = async (req, res, next) => {
+const generateToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
+
+const registerUser = async (req, res) => {
   try {
-    const { name, email, password, phone, confirm_password } = req.body;
+    const { fullName, email, password, phone, role, parkingName, address, gstNumber } = req.body;
 
-    if (password !== confirm_password) {
-      return res.status(400).json({
-        msg: "Passwords do not match!",
-        status_code: 400,
-      });
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
     }
 
-    const existing_email = await User.findOne({ email });
-    if (existing_email) {
-      return res.status(400).json({
-        msg: "Email already registered!",
-        status_code: 400,
-      });
+    if (role === "vendor") {
+      if (!parkingName || !address || !gstNumber) {
+        return res.status(400).json({
+          message: "Vendors must provide parkingName, address, and gstNumber",
+        });
+      }
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const userData = { email, password, role: role || "user" };
 
-    const newUser = new User({
-      id: uuidv4(),
-      name,
-      email,
-      phone,
-      password: hashedPassword,
-      role: "customer",
-    });
+    if (role !== "admin") {
+      if (!fullName || !phone) {
+        return res.status(400).json({ message: "fullName and phone are required" });
+      }
+      userData.fullName = fullName;
+      userData.phone = phone;
+    }
 
-    await newUser.save();
+    if (role === "vendor") {
+      userData.parkingName = parkingName;
+      userData.address = address;
+      userData.gstNumber = gstNumber;
+    }
 
-    const token = jwt.sign(
-      { id: newUser.id, email: newUser.email, role: newUser.role },
-      SECRET_KEY,
-      { expiresIn: "24h" }
-    );
+    const user = await User.create(userData);
 
-    return res.status(201).json({
-      msg: "User registered successfully!",
-      status_code: 201,
-      token,
+    res.status(201).json({
+      message: "Registration successful",
+      token: generateToken(user._id, user.role),
       user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
       },
     });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    console.error("Register Error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// ------------------------ CREATE DEFAULT ADMIN ------------------------
-// called automatically on server start — NOT an HTTP route
-exports.createDefaultAdmin = async () => {
-  try {
-    const adminEmail = "ghosakash94@gmail.com";
-
-    const existingAdmin = await User.findOne({ email: adminEmail });
-
-    if (!existingAdmin) {
-      // user never registered — create fresh admin account
-      const hashedPassword = await bcrypt.hash("Admin@123", 10);
-
-      const newAdmin = new User({
-        id: uuidv4(),
-        name: "Akash Ghosh",
-        email: adminEmail,
-        password: hashedPassword,
-        role: "admin",
-        phone: "0000000000",
-        isActive: true,
-      });
-
-      await newAdmin.save();
-
-      const token = jwt.sign(
-        { id: newAdmin.id, email: newAdmin.email, role: newAdmin.role },
-        SECRET_KEY,
-        { expiresIn: "24h" }
-      );
-
-      console.log("---------------------------------------------------------");
-      console.log("✅ Default admin created successfully!");
-      console.log(`📧 Email    : ${adminEmail}`);
-      console.log(`🔑 Password : Admin@123`);
-      console.log(`🪙 Token    : ${token}`);
-      console.log("---------------------------------------------------------");
-
-    } else if (existingAdmin.role !== "admin") {
-      // user already registered as customer — promote to admin
-      existingAdmin.role = "admin";
-      await existingAdmin.save();
-
-      console.log("---------------------------------------------------------");
-      console.log("✅ Existing user promoted to admin!");
-      console.log(`📧 Email    : ${adminEmail}`);
-      console.log("🔑 Password : unchanged — use your existing password");
-      console.log("---------------------------------------------------------");
-
-    } else {
-      console.log("ℹ️  Admin already exists — no changes made.");
-    }
-  } catch (err) {
-    console.error("❌ Error creating default admin:", err);
-  }
-};
+module.exports = { registerUser };
