@@ -1,60 +1,79 @@
-const User = require("../models/userModel");
+const { v4: uuidv4 } = require("uuid");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const User = require("../../models/userModel/userModel");
+const { SECRET_KEY } = require("../../utils/config");
 
-const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "7d" });
-};
-
-const registerUser = async (req, res) => {
+// ---------------- REGISTER USER / VENDOR ----------------
+exports.createRegister = async (req, res, next) => {
   try {
-    const { fullName, email, password, phone, role, parkingName, address, gstNumber } = req.body;
+    const {
+      fullName,
+      email,
+      password,
+      confirm_password,
+      phone,
+      role,
+      parkingName,
+      address,
+      gstNumber,
+    } = req.body;
 
+    // password match
+    if (password !== confirm_password) {
+      return res.status(400).json({
+        message: "Passwords do not match",
+      });
+    }
+
+    // check existing
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
-      return res.status(400).json({ message: "Email already registered" });
+      return res.status(400).json({
+        message: "Email already registered",
+      });
     }
 
-    if (role === "vendor") {
-      if (!parkingName || !address || !gstNumber) {
-        return res.status(400).json({
-          message: "Vendors must provide parkingName, address, and gstNumber",
-        });
-      }
-    }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const userData = { email, password, role: role || "user" };
+    const newUser = new User({
+      id: uuidv4(),
+      fullName,
+      email,
+      phone,
+      password: hashedPassword,
+      role: role || "user",
+      parkingName,
+      address,
+      gstNumber,
+      isVerified: true, // enable OTP later if needed
+    });
 
-    if (role !== "admin") {
-      if (!fullName || !phone) {
-        return res.status(400).json({ message: "fullName and phone are required" });
-      }
-      userData.fullName = fullName;
-      userData.phone = phone;
-    }
+    await newUser.save();
 
-    if (role === "vendor") {
-      userData.parkingName = parkingName;
-      userData.address = address;
-      userData.gstNumber = gstNumber;
-    }
+    const token = jwt.sign(
+      {
+        id: newUser._id,
+        email: newUser.email,
+        role: newUser.role,
+      },
+      SECRET_KEY,
+      { expiresIn: "24h" }
+    );
 
-    const user = await User.create(userData);
-
-    res.status(201).json({
-      message: "Registration successful",
-      token: generateToken(user._id, user.role),
+    return res.status(201).json({
+      message: "User registered successfully",
+      token,
       user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-        isVerified: user.isVerified,
+        id: newUser._id,
+        name: newUser.fullName,
+        email: newUser.email,
+        role: newUser.role,
       },
     });
+
   } catch (error) {
-    console.error("Register Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    next(error);
   }
 };
-
-module.exports = { registerUser };

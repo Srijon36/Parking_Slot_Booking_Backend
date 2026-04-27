@@ -2,32 +2,49 @@ const mongoose = require("mongoose");
 
 const parkingSchema = new mongoose.Schema(
   {
-    name: {
+    vendor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    parkingName: {
       type: String,
       required: true,
     },
+
     address: {
       type: String,
       required: true,
     },
-    location: {
-      lat: {
-        type: Number,
-        required: true,
-      },
-      lng: {
-        type: Number,
-        required: true,
-      },
-    },
+
+    city: String,
+    state: String,
+
+    latitude: Number,
+    longitude: Number,
+
     totalSlots: {
       type: Number,
       required: true,
     },
+
+    availableSlots: {
+      type: Number,
+      required: true,
+    },
+
     pricePerHour: {
-        type: Number,
-        default: 20
-}
+      type: Number,
+      required: true,
+    },
+
+    images: [String],
+
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

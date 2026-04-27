@@ -2,34 +2,30 @@ const mongoose = require("mongoose");
 
 const slotSchema = new mongoose.Schema(
   {
-    parkingId: {
+    parking: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Parking",
       required: true,
     },
 
     slotNumber: {
-      type: Number,
-      required: true,
-    },
-
-    // 🚗 Slot Type (Tier System)
-    slotType: {
       type: String,
-      enum: ["basic", "medium", "pro"],
-      default: "basic",
+      required: true,
     },
 
-    // 💰 Price per hour based on type
-    pricePerHour: {
-      type: Number,
-      required: true,
+    vehicleType: {
+      type: String,
+      enum: ["car", "bike", "ev"],
+      default: "car",
+    },
+
+    status: {
+      type: String,
+      enum: ["available", "booked", "maintenance"],
+      default: "available",
     },
   },
   { timestamps: true }
 );
-
-// 🔥 Prevent duplicate slot numbers in same parking
-slotSchema.index({ parkingId: 1, slotNumber: 1 }, { unique: true });
 
 module.exports = mongoose.model("Slot", slotSchema);

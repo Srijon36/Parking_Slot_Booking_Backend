@@ -2,35 +2,21 @@ const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema(
   {
-    userId: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
-    parkingId: {
+    parking: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Parking",
       required: true,
     },
 
-    slotId: {
+    slot: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Slot",
-      required: true,
-    },
-
-    // 🚗 Vehicle Info
-    vehicleNumber: {
-      type: String,
-      required: true,
-      uppercase: true,
-      trim: true,
-    },
-
-    vehicleType: {
-      type: String,
-      enum: ["car", "bike"],
       required: true,
     },
 
@@ -44,35 +30,23 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
-    status: {
+    totalAmount: Number,
+
+    bookingStatus: {
       type: String,
-      enum: ["booked", "cancelled"],
-      default: "booked",
+      enum: ["pending", "confirmed", "cancelled", "completed"],
+      default: "pending",
     },
 
-    // 💰 Optional pricing
-    totalPrice: {
-      type: Number,
-      default: 0,
-    },
+    qrCode: String,
 
-    // 🔳 Optional QR Code (for entry)
-    qrCode: {
+    arrivalStatus: {
       type: String,
+      enum: ["not-arrived", "arrived"],
+      default: "not-arrived",
     },
   },
   { timestamps: true }
 );
-
-// 🔥 Index for faster query (important for overlap check)
-bookingSchema.index({ slotId: 1, startTime: 1, endTime: 1 });
-
-// ❗ Validate time (basic check)
-bookingSchema.pre("save", function (next) {
-  if (this.startTime >= this.endTime) {
-    return next(new Error("End time must be greater than start time"));
-  }
-  next();
-});
 
 module.exports = mongoose.model("Booking", bookingSchema);
