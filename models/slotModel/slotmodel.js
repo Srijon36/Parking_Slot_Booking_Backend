@@ -8,21 +8,11 @@ const slotSchema = new mongoose.Schema(
       required: true,
     },
 
-    slotNumber: {
-      type: String,
-      required: true,
-    },
+    slotNumber: String,
 
-    vehicleType: {
-      type: String,
-      enum: ["car", "bike", "ev"],
-      default: "car",
-    },
-
-    status: {
-      type: String,
-      enum: ["available", "booked", "maintenance"],
-      default: "available",
+    isBooked: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

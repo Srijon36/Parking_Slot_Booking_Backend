@@ -1,16 +1,15 @@
+const User = require("../../models/userModel/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../../models/userModel/userModel");
 const { SECRET_KEY } = require("../../utils/config");
 
-// ---------------- LOGIN ----------------
 exports.createLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
-        message: "Email and password required",
+        message: "Email and password are required",
       });
     }
 
@@ -22,12 +21,7 @@ exports.createLogin = async (req, res, next) => {
       });
     }
 
-    if (!user.isActive) {
-      return res.status(403).json({
-        message: "Account disabled",
-      });
-    }
-
+    // compare password
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -36,6 +30,7 @@ exports.createLogin = async (req, res, next) => {
       });
     }
 
+    // JWT TOKEN
     const token = jwt.sign(
       {
         id: user._id,
@@ -51,13 +46,12 @@ exports.createLogin = async (req, res, next) => {
       token,
       user: {
         id: user._id,
-        name: user.fullName,
+        fullName: user.fullName,
         email: user.email,
         role: user.role,
       },
     });
-
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };

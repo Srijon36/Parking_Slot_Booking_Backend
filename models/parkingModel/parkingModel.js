@@ -8,43 +8,15 @@ const parkingSchema = new mongoose.Schema(
       required: true,
     },
 
-    parkingName: {
-      type: String,
-      required: true,
-    },
-
-    address: {
-      type: String,
-      required: true,
-    },
-
-    city: String,
-    state: String,
+    parkingName: String,
+    address: String,
 
     latitude: Number,
     longitude: Number,
 
-    totalSlots: {
-      type: Number,
-      required: true,
-    },
+    totalSlots: Number,
 
-    availableSlots: {
-      type: Number,
-      required: true,
-    },
-
-    pricePerHour: {
-      type: Number,
-      required: true,
-    },
-
-    images: [String],
-
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
+    pricePerHour: Number,
   },
   { timestamps: true }
 );
