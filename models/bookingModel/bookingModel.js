@@ -5,45 +5,25 @@ const bookingSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
-    },
-
-    parking: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Parking",
-      required: true,
     },
 
     slot: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Slot",
-      required: true,
     },
 
-    startTime: {
-      type: Date,
-      required: true,
+    parking: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Parking",
     },
 
-    endTime: {
-      type: Date,
-      required: true,
-    },
+    startTime: Date,
+    endTime: Date,
 
-    totalAmount: Number,
-
-    bookingStatus: {
+    status: {
       type: String,
-      enum: ["pending", "confirmed", "cancelled", "completed"],
-      default: "pending",
-    },
-
-    qrCode: String,
-
-    arrivalStatus: {
-      type: String,
-      enum: ["not-arrived", "arrived"],
-      default: "not-arrived",
+      enum: ["active", "completed", "cancelled"],
+      default: "active",
     },
   },
   { timestamps: true }

@@ -1,56 +1,55 @@
-const uuid4 = require("uuid4");
-const User = require("../../models/userModel/userModel");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { SECRET_KEY } = require("../../utils/config");
+const Booking = require("../models/bookingModel");
+const Slot = require("../models/slotModel");
 
-exports.createLogin = async (req, res, next) => {
+
+// BOOK SLOT
+exports.createBooking = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { slotId, startTime, endTime } = req.body;
 
-    if (!email || !password) {
+    const slot = await Slot.findById(slotId);
+
+    if (!slot || slot.isBooked) {
       return res.status(400).json({
-        message: "Email and password are required"
+        message: "Slot not available",
       });
     }
 
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(401).json({
-        message: "Invalid credentials"
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(401).json({
-        message: "Invalid credentials"
-      });
-    }
-
-    const token = jwt.sign(
-      {
-        id: user._id,
-        email: user.email,
-        role: user.role
-      },
-      SECRET_KEY,
-      { expiresIn: "24h" }
-    );
-
-    res.status(200).json({
-      message: "Login successful",
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+    const booking = await Booking.create({
+      user: req.user.id,
+      slot: slotId,
+      parking: slot.parking,
+      startTime,
+      endTime,
     });
 
+    // mark slot booked
+    slot.isBooked = true;
+    await slot.save();
+
+    res.status(201).json({
+      message: "Booking successful",
+      booking,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// CANCEL BOOKING
+exports.cancelBooking = async (req, res, next) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    booking.status = "cancelled";
+    await booking.save();
+
+    await Slot.findByIdAndUpdate(booking.slot, {
+      isBooked: false,
+    });
+
+    res.json({ message: "Booking cancelled" });
   } catch (err) {
     next(err);
   }
