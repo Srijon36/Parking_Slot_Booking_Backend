@@ -38,8 +38,8 @@ mongoose
 // =============================
 // 🔹 Import Routes
 // =============================
-const authRegisterRoutes = require("./routes/registerRoutes");
-const authLoginRoutes = require("./routes/loginRoutes");
+const authRegisterRoutes = require("./routes/registerRoute/registerRoute");
+const authLoginRoutes = require("./routes/loginRoute/loginRoute");
 
 
 // =============================
