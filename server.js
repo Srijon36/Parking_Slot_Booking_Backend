@@ -13,7 +13,7 @@ const app = express();
 // ======================================
 app.use(
   cors({
-    origin: ["http://localhost:5173"], // React frontend
+    origin: ["http://localhost:5173"], // React Frontend
     credentials: true,
   })
 );
@@ -29,7 +29,7 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected Successfully"))
   .catch((err) =>
-    console.log("❌ MongoDB Connection Failed:", err)
+    console.log("❌ MongoDB Connection Failed:", err.message)
   );
 
 
@@ -37,41 +37,78 @@ mongoose
 // 🔹 Import Routes
 // ======================================
 
-// AUTH
-const authRegisterRoutes = require("./routes/registerRoute/registerRoute");
-const authLoginRoutes = require("./routes/loginRoute/loginRoute");
+// AUTH ROUTES
+const registerRoutes = require("./routes/registerRoute/registerRoute");
+const loginRoutes = require("./routes/loginRoute/loginRoute");
+const forgotPasswordRoutes = require(
+  "./routes/forgotPasswordRoute/forgotPasswordRoute"
+);
 
-// SLOT
+// ADMIN ROUTES
+const adminRoutes = require("./routes/adminRoute/adminRoute");
+
+// VENDOR ROUTES
+const vendorRoutes = require("./routes/vendorRoute/vendorRoute");
+
+// PARKING ROUTES
+const parkingRoutes = require("./routes/parkingRoute/parkingRoute");
+
+// SLOT ROUTES
 const slotRoutes = require("./routes/slotRoute/slotRoute");
 
-// (Optional — if created later)
-// const parkingRoutes = require("./routes/parkingRoute/parkingRoute");
-// const bookingRoutes = require("./routes/bookingRoute/bookingRoute");
+// BOOKING ROUTES
+const bookingRoutes = require("./routes/bookingRoute/bookingRoute");
+
+// PAYMENT ROUTES
+const paymentRoutes = require("./routes/paymentRoute/paymentRoute");
 
 
 // ======================================
 // 🔹 Use Routes
 // ======================================
 
-// Auth APIs
-app.use("/api/auth", authRegisterRoutes);
-app.use("/api/auth", authLoginRoutes);
+// AUTH APIs
+app.use("/api/auth", registerRoutes);
+app.use("/api/auth", loginRoutes);
+app.use("/api/auth", forgotPasswordRoutes);
 
-// Slot APIs
+// ADMIN APIs
+app.use("/api/admin", adminRoutes);
+
+// VENDOR APIs
+app.use("/api/vendor", vendorRoutes);
+
+// PARKING APIs
+app.use("/api/parking", parkingRoutes);
+
+// SLOT APIs
 app.use("/api/slots", slotRoutes);
 
-// Future APIs
-// app.use("/api/parking", parkingRoutes);
-// app.use("/api/booking", bookingRoutes);
+// BOOKING APIs
+app.use("/api/bookings", bookingRoutes);
+
+// PAYMENT APIs
+app.use("/api/payment", paymentRoutes);
 
 
 // ======================================
-// 🔹 Health Check
+// 🔹 Health Check Route
 // ======================================
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Backend is running successfully 🚀",
+    message: "🚀 Parking Slot Booking Backend Running",
+  });
+});
+
+
+// ======================================
+// 🔹 404 Route Handler
+// ======================================
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route Not Found",
   });
 });
 
@@ -80,7 +117,7 @@ app.get("/", (req, res) => {
 // 🔹 Global Error Handler
 // ======================================
 app.use((err, req, res, next) => {
-  console.error("❌ Error:", err.message);
+  console.error("❌ Server Error:", err);
 
   res.status(err.status || 500).json({
     success: false,
