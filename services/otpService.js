@@ -21,3 +21,8 @@ const verifyOTP = (savedOTP, enteredOTP, expiry) => {
   return savedOTP === enteredOTP;
 };
 
+module.exports = {
+  generateOTP,
+  otpExpiryTime,
+  verifyOTP,
+};
