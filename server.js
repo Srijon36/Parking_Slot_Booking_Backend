@@ -37,6 +37,9 @@ const slotRoutes            = require("./routes/slotRoute/slotRoute");
 const bookingRoutes         = require("./routes/bookingRoute/bookingRoute");
 const paymentRoutes         = require("./routes/paymentRoute/paymentRoute");
 
+// 🔹 Import Middlewares
+const errorHandler = require("./middlewares/errorHandler/errorHandler");
+
 // 🔹 Use Routes
 app.use("/api/auth",    registerRoutes);
 app.use("/api/auth",    loginRoutes);
@@ -65,13 +68,7 @@ app.use((req, res) => {
 });
 
 // 🔹 Global Error Handler
-app.use((err, req, res, next) => {
-  console.error("❌ Error:", err.message);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
-});
+app.use(errorHandler);
 
 // 🔹 Server Start
 const PORT = process.env.PORT || 5000;
