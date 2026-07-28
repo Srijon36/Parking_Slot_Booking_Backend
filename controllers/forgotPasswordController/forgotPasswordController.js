@@ -9,7 +9,7 @@ const generateOtp = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
 // ─────────────────────────────────────────────────────────────
-// STEP 1 — POST /api/forgot-password/send-otp
+// STEP 1 — POST /api/auth/send-otp
 // Body: { email }
 // ─────────────────────────────────────────────────────────────
 const sendOtp = async (req, res) => {
@@ -48,10 +48,10 @@ const sendOtp = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// STEP 2 — POST /api/forgot-password/verify-otp
+// STEP 2 — POST /api/auth/verify-otp
 // Body: { email, otp }
-// Returns a short-lived reset token (the hashed OTP itself) that
-// the frontend must pass to the reset-password endpoint.
+// Returns a short-lived reset token that the frontend must pass
+// to the reset-password endpoint.
 // ─────────────────────────────────────────────────────────────
 const verifyOtp = async (req, res) => {
   try {
@@ -104,7 +104,7 @@ const verifyOtp = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// STEP 3 — POST /api/forgot-password/reset-password
+// STEP 3 — POST /api/auth/reset-password
 // Body: { resetToken, newPassword }
 // ─────────────────────────────────────────────────────────────
 const resetPassword = async (req, res) => {
