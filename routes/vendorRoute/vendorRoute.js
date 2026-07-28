@@ -7,7 +7,7 @@ const {
   vendorDashboard,
 } = require("../../controllers/vendorController/vendorController");
 
-const authMiddleware = require("../../middleware/authMiddleware");
+const authMiddleware = require("../../middlewares/authMiddleware/authMiddleware");
 
 router.post("/create-parking", authMiddleware, createParking);
 router.get("/my-parkings", authMiddleware, getVendorParkings);
