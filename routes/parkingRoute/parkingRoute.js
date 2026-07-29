@@ -7,7 +7,7 @@ const {
   getParkingById,
 } = require("../../controllers/parkingController/parkingController");
 
-const authMiddleware = require("../../middlewares/authMiddleware");
+const authMiddleware = require("../../middlewares/authMiddleware/authMiddleware");
 
 // CREATE PARKING (Vendor only) - protected route
 router.post("/", authMiddleware, createParking);

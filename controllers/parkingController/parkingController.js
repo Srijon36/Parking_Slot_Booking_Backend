@@ -1,4 +1,4 @@
-const Parking = require("../models/parkingModel");
+const parkingModel = require('../../models/parkingModel/parkingModel');
 
 
 // CREATE PARKING (Vendor only)

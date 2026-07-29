@@ -1,5 +1,5 @@
-const Booking = require("../models/bookingModel");
-const Slot = require("../models/slotModel");
+const Booking = require("../../models/bookingModel/bookingModel");
+const Slot = require("../../models/slotModel/slotModel");
 
 
 // BOOK SLOT
@@ -37,10 +37,59 @@ exports.createBooking = async (req, res, next) => {
 };
 
 
+// GET LOGGED-IN USER'S BOOKINGS
+exports.getUserBookings = async (req, res, next) => {
+  try {
+    const bookings = await Booking.find({ user: req.user.id })
+      .populate("slot")
+      .populate("parking");
+
+    res.status(200).json({
+      success: true,
+      count: bookings.length,
+      bookings,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// GET SINGLE BOOKING BY ID
+exports.getBookingById = async (req, res, next) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate("slot")
+      .populate("parking");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      booking,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 // CANCEL BOOKING
 exports.cancelBooking = async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
 
     booking.status = "cancelled";
     await booking.save();
@@ -49,7 +98,10 @@ exports.cancelBooking = async (req, res, next) => {
       isBooked: false,
     });
 
-    res.json({ message: "Booking cancelled" });
+    res.status(200).json({
+      success: true,
+      message: "Booking cancelled",
+    });
   } catch (err) {
     next(err);
   }
