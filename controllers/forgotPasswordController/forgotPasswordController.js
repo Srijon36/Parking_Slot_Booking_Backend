@@ -1,6 +1,7 @@
 const bcrypt        = require("bcryptjs");
 const User          = require("../../models/userModel/userModel");
 const { sendOtpEmail } = require("../../utils/mailer");
+const { SECRET_KEY } = require("../../utils/config");
 
 // ─────────────────────────────────────────────────────────────
 // Helper: generate a random 6-digit OTP
@@ -79,12 +80,12 @@ const verifyOtp = async (req, res) => {
     }
 
     // OTP is valid — generate a one-time reset token (valid 15 min)
-    const jwt = require("jsonwebtoken");
-    const resetToken = jwt.sign(
-      { userId: user._id, purpose: "password-reset" },
-      process.env.SECRET_KEY,
-      { expiresIn: "15m" }
-    );
+ const jwt = require("jsonwebtoken");
+const resetToken = jwt.sign(
+  { userId: user._id, purpose: "password-reset" },
+  SECRET_KEY,
+  { expiresIn: "15m" }
+);
 
     // Clear the OTP so it cannot be reused
     user.otp       = null;
@@ -120,10 +121,10 @@ const resetPassword = async (req, res) => {
     }
 
     const jwt = require("jsonwebtoken");
-    let decoded;
-    try {
-      decoded = jwt.verify(resetToken, process.env.SECRET_KEY);
-    } catch {
+let decoded;
+try {
+  decoded = jwt.verify(resetToken, SECRET_KEY);
+} catch {
       return res.status(400).json({ success: false, message: "Invalid or expired reset token." });
     }
 

@@ -1,5 +1,3 @@
-const { v4: uuidv4 } = require("uuid");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/userModel/userModel");
 const { SECRET_KEY } = require("../../utils/config");
@@ -35,14 +33,11 @@ exports.createRegister = async (req, res, next) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const newUser = new User({
-      id: uuidv4(),
       fullName,
       email,
       phone,
-      password: hashedPassword,
+      password, // ✅ plain password — pre-save hook hashes it once
       role: role || "user",
       parkingName,
       address,
