@@ -1,5 +1,4 @@
-const parkingModel = require('../../models/parkingModel/parkingModel');
-
+const Parking = require('../../models/parkingModel/parkingModel');
 
 // CREATE PARKING (Vendor only)
 exports.createParking = async (req, res, next) => {
@@ -26,7 +25,6 @@ exports.createParking = async (req, res, next) => {
   }
 };
 
-
 // GET ALL PARKINGS
 exports.getAllParkings = async (req, res, next) => {
   try {
@@ -40,7 +38,6 @@ exports.getAllParkings = async (req, res, next) => {
     next(err);
   }
 };
-
 
 // GET SINGLE PARKING
 exports.getParkingById = async (req, res, next) => {
