@@ -1,4 +1,5 @@
 const Slot = require("../../models/slotModel/slotModel");
+const Parking = require("../../models/parkingModel/parkingModel");
 
 // ================================
 // CREATE SLOTS (Vendor)
@@ -10,6 +11,18 @@ exports.createSlots = async (req, res, next) => {
     if (!parkingId || !totalSlots) {
       return res.status(400).json({
         message: "Parking ID and total slots required",
+      });
+    }
+
+    const parking = await Parking.findById(parkingId);
+
+    if (!parking) {
+      return res.status(404).json({ message: "Parking not found" });
+    }
+
+    if (parking.vendor.toString() !== req.user.id) {
+      return res.status(403).json({
+        message: "You are not authorized to add slots to this parking",
       });
     }
 
@@ -34,8 +47,6 @@ exports.createSlots = async (req, res, next) => {
   }
 };
 
-
-
 // ================================
 // GET ALL SLOTS OF A PARKING
 // ================================
@@ -55,8 +66,6 @@ exports.getSlotsByParking = async (req, res, next) => {
     next(error);
   }
 };
-
-
 
 // ================================
 // GET AVAILABLE SLOTS
@@ -78,8 +87,6 @@ exports.getAvailableSlots = async (req, res, next) => {
     next(error);
   }
 };
-
-
 
 // ================================
 // BOOK SLOT
@@ -113,8 +120,6 @@ exports.bookSlot = async (req, res, next) => {
     next(error);
   }
 };
-
-
 
 // ================================
 // RELEASE SLOT (Checkout)

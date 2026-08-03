@@ -9,19 +9,21 @@ const {
   releaseSlot,
 } = require("../../controllers/slotController/slotController");
 
-// Vendor create slots
-router.post("/create", createSlots);
+const authMiddleware = require("../../middlewares/authMiddleware/authMiddleware");
 
-// All slots of parking
+// Vendor create slots - protected route
+router.post("/create", authMiddleware, createSlots);
+
+// All slots of parking - public
 router.get("/:parkingId", getSlotsByParking);
 
-// Available slots
+// Available slots - public
 router.get("/available/:parkingId", getAvailableSlots);
 
-// Book slot
-router.put("/book/:slotId", bookSlot);
+// Book slot - protected route (user must be logged in)
+router.put("/book/:slotId", authMiddleware, bookSlot);
 
-// Release slot
-router.put("/release/:slotId", releaseSlot);
+// Release slot - protected route
+router.put("/release/:slotId", authMiddleware, releaseSlot);
 
 module.exports = router;
