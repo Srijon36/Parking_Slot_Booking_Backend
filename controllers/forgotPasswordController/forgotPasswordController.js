@@ -2,6 +2,7 @@ const bcrypt        = require("bcryptjs");
 const User          = require("../../models/userModel/userModel");
 const { sendOtpEmail } = require("../../utils/mailer");
 const { SECRET_KEY } = require("../../utils/config");
+const jwt = require("jsonwebtoken");
 
 // ─────────────────────────────────────────────────────────────
 // Helper: generate a random 6-digit OTP
@@ -80,12 +81,11 @@ const verifyOtp = async (req, res) => {
     }
 
     // OTP is valid — generate a one-time reset token (valid 15 min)
- const jwt = require("jsonwebtoken");
-const resetToken = jwt.sign(
-  { userId: user._id, purpose: "password-reset" },
-  SECRET_KEY,
-  { expiresIn: "15m" }
-);
+    const resetToken = jwt.sign(
+      { userId: user._id, purpose: "password-reset" },
+      SECRET_KEY,
+      { expiresIn: "15m" }
+    );
 
     // Clear the OTP so it cannot be reused
     user.otp       = null;
@@ -120,11 +120,10 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ success: false, message: "Password must be at least 6 characters." });
     }
 
-    const jwt = require("jsonwebtoken");
-let decoded;
-try {
-  decoded = jwt.verify(resetToken, SECRET_KEY);
-} catch {
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, SECRET_KEY);
+    } catch {
       return res.status(400).json({ success: false, message: "Invalid or expired reset token." });
     }
 
@@ -137,8 +136,10 @@ try {
       return res.status(404).json({ success: false, message: "User not found." });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
-    user.password = hashedPassword;
+    // ✅ Assign the PLAIN password only — the pre("save") hook in
+    // userModel.js hashes it automatically. Hashing it here too
+    // would double-hash it and break future logins.
+    user.password = newPassword;
     await user.save();
 
     return res.status(200).json({
