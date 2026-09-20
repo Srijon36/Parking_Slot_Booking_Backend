@@ -48,7 +48,8 @@ app.use("/api/admin",   adminRoutes);
 app.use("/api/vendor",  vendorRoutes);
 app.use("/api/parking", parkingRoutes);
 app.use("/api/slots",   slotRoutes);
-app.use("/api/bookings",bookingRoutes);
+app.use("/api/booking",  bookingRoutes);
+app.use("/api/bookings", bookingRoutes);
 app.use("/api/payment", paymentRoutes);
 
 // 🔹 Health Check

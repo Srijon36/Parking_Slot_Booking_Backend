@@ -5,22 +5,46 @@ const Slot = require("../../models/slotModel/slotModel");
 // BOOK SLOT
 exports.createBooking = async (req, res, next) => {
   try {
-    const { slotId, startTime, endTime } = req.body;
+    const {
+      slotId,
+      parkingId,
+      startTime,
+      endTime,
+      vehicleName,
+      vehicleModel,
+      plateNumber,
+      hours,
+      totalPrice,
+    } = req.body;
 
-    const slot = await Slot.findById(slotId);
+    let slot = null;
+    if (slotId) {
+      slot = await Slot.findById(slotId);
+    } else if (parkingId) {
+      slot = await Slot.findOne({ parking: parkingId, isBooked: false });
+    }
 
     if (!slot || slot.isBooked) {
       return res.status(400).json({
-        message: "Slot not available",
+        message: "No available slot found for this parking.",
       });
     }
 
+    const bookingHours = Number(hours) || 1;
+    const start = startTime ? new Date(startTime) : new Date();
+    const end = endTime ? new Date(endTime) : new Date(start.getTime() + bookingHours * 3600000);
+
     const booking = await Booking.create({
       user: req.user.id,
-      slot: slotId,
-      parking: slot.parking,
-      startTime,
-      endTime,
+      slot: slot._id,
+      parking: slot.parking || parkingId,
+      vehicleName: vehicleName || "Standard Vehicle",
+      vehicleModel: vehicleModel || "Sedan",
+      plateNumber: plateNumber || "N/A",
+      hours: bookingHours,
+      totalPrice: Number(totalPrice) || 0,
+      startTime: start,
+      endTime: end,
     });
 
     // mark slot booked
@@ -28,6 +52,7 @@ exports.createBooking = async (req, res, next) => {
     await slot.save();
 
     res.status(201).json({
+      success: true,
       message: "Booking successful",
       booking,
     });

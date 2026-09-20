@@ -12,6 +12,7 @@ const authMiddleware = require("../../middlewares/authMiddleware/authMiddleware"
 
 // CREATE BOOKING (User only) - protected route
 router.post("/", authMiddleware, createBooking);
+router.post("/create", authMiddleware, createBooking);
 
 // GET LOGGED-IN USER'S BOOKINGS - protected route
 router.get("/my-bookings", authMiddleware, getUserBookings);

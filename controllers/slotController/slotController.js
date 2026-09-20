@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Slot = require("../../models/slotModel/slotModel");
 const Parking = require("../../models/parkingModel/parkingModel");
 
@@ -53,9 +54,21 @@ exports.createSlots = async (req, res, next) => {
 exports.getSlotsByParking = async (req, res, next) => {
   try {
     const { parkingId } = req.params;
+    let targetParkingId = parkingId;
+
+    if (!mongoose.Types.ObjectId.isValid(parkingId)) {
+      const nameQuery = parkingId.replace(/[-_]/g, " ");
+      const p = await Parking.findOne({
+        parkingName: { $regex: new RegExp(`^${nameQuery}$`, "i") },
+      });
+      if (!p) {
+        return res.status(200).json({ totalSlots: 0, slots: [] });
+      }
+      targetParkingId = p._id;
+    }
 
     const slots = await Slot.find({
-      parking: parkingId,
+      parking: targetParkingId,
     });
 
     res.status(200).json({
@@ -73,9 +86,21 @@ exports.getSlotsByParking = async (req, res, next) => {
 exports.getAvailableSlots = async (req, res, next) => {
   try {
     const { parkingId } = req.params;
+    let targetParkingId = parkingId;
+
+    if (!mongoose.Types.ObjectId.isValid(parkingId)) {
+      const nameQuery = parkingId.replace(/[-_]/g, " ");
+      const p = await Parking.findOne({
+        parkingName: { $regex: new RegExp(`^${nameQuery}$`, "i") },
+      });
+      if (!p) {
+        return res.status(200).json({ availableSlots: 0, slots: [] });
+      }
+      targetParkingId = p._id;
+    }
 
     const slots = await Slot.find({
-      parking: parkingId,
+      parking: targetParkingId,
       isBooked: false,
     });
 

@@ -17,6 +17,28 @@ const bookingSchema = new mongoose.Schema(
       ref: "Parking",
     },
 
+    vehicleName: {
+      type: String,
+      trim: true,
+    },
+    vehicleModel: {
+      type: String,
+      trim: true,
+    },
+    plateNumber: {
+      type: String,
+      trim: true,
+    },
+
+    hours: {
+      type: Number,
+      default: 1,
+    },
+    totalPrice: {
+      type: Number,
+      default: 0,
+    },
+
     startTime: Date,
     endTime: Date,
 

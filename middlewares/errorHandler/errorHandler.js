@@ -3,8 +3,6 @@
 // Catches errors passed via next(err) or thrown in async routes
 // ─────────────────────────────────────────────────────────────
 const errorHandler = (err, req, res, next) => {
-  console.error("❌ Error:", err.message);
-
   // Handle Mongoose bad ObjectId
   if (err.name === "CastError") {
     err = {
@@ -47,7 +45,12 @@ const errorHandler = (err, req, res, next) => {
     };
   }
 
-  return res.status(err.status || 500).json({
+  const statusCode = err.status || 500;
+  if (statusCode >= 500) {
+    console.error("❌ Internal Server Error:", err.message);
+  }
+
+  return res.status(statusCode).json({
     success: false,
     message: err.message || "Internal Server Error",
   });

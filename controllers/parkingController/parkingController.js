@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Parking = require('../../models/parkingModel/parkingModel');
 
 // CREATE PARKING (Vendor only)
@@ -42,7 +43,28 @@ exports.getAllParkings = async (req, res, next) => {
 // GET SINGLE PARKING
 exports.getParkingById = async (req, res, next) => {
   try {
-    const parking = await Parking.findById(req.params.id);
+    const { id } = req.params;
+
+    let parking = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      parking = await Parking.findById(id).populate(
+        "vendor",
+        "fullName email"
+      );
+    } else {
+      // Support name / slug lookup (e.g. "downtown-central" -> "Downtown Central")
+      const nameQuery = id.replace(/[-_]/g, " ");
+      parking = await Parking.findOne({
+        parkingName: { $regex: new RegExp(`^${nameQuery}$`, "i") },
+      }).populate("vendor", "fullName email");
+    }
+
+    if (!parking) {
+      return res.status(404).json({
+        success: false,
+        message: "Parking not found",
+      });
+    }
 
     res.json(parking);
   } catch (err) {
